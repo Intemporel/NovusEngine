@@ -1,4 +1,5 @@
 #include "Spline.h"
+
 #include "Interpolation.h"
 
 namespace Spline
@@ -48,16 +49,6 @@ namespace Spline
 
     const std::vector<vec3>& InterpolatedStorage::GetInterpolatedStorage(u32 splinePoints)
     {
-        bool checkSize = true;
-
-        if (splinePoints != 0)
-        {
-            checkSize = ((splinePoints * (_stepSize + 1)) == _points.size());
-        }
-
-        if (IsDirty() || !checkSize)
-            return {};
-
         return _points;
     }
 
@@ -67,9 +58,10 @@ namespace Spline
         _storage.MarkAsDirty();
     }
 
-    Spline::Spline(InterpolationType type, const std::vector<SplinePoint>& points) : _type(type), _storage(0)
+    Spline::Spline(InterpolationType type, const std::vector<SplinePoint>& points, const std::vector<u32>& timestamps) : _type(type), _storage(0)
     {
         _points = points;
+        _timestamps = timestamps;
 
         _storage.Clear();
         _storage.MarkAsDirty();
@@ -94,7 +86,7 @@ namespace Spline
         if (position >= _points.size())
             return;
 
-        std::vector<SplinePoint>::iterator it = _points.begin();
+        auto it = _points.begin();
         std::advance(it, position);
         _points.erase(it);
         _storage.MarkAsDirty();
@@ -129,6 +121,26 @@ namespace Spline
         _storage.MarkAsDirty();
     }
 
+    const SplinePoint Spline::GetSplinePoint(i32 index)
+    {
+        if (index >= 0 && index < _points.size())
+        {
+            return _points[index];
+        }
+
+        return {};
+    }
+
+    const u32 Spline::GetTimestamp(i32 index)
+    {
+        if (index >= 0 & index < _timestamps.size())
+        {
+            return _timestamps[index];
+        }
+
+        return 0;
+    }
+
     bool Spline::DoInterpolation()
     {
         if (!_storage.IsDirty())
@@ -148,7 +160,7 @@ namespace Spline
                 SplinePoint nextPoint = _points[n + 1];
 
                 std::vector<vec3> currentPortion;
-                currentPortion.reserve(_step + 1);
+                currentPortion.reserve(_step);
 
                 for (u32 i = 0; i < _step + 1; i++)
                 {
@@ -170,7 +182,7 @@ namespace Spline
             for (i32 n = 0; n < inlinePoints.size() - 4; n++)
             {
                 std::vector<vec3> currentPortion;
-                currentPortion.reserve(_step + 1);
+                currentPortion.reserve(_step);
 
                 for (u32 i = 0; i < _step + 1; i++)
                 {

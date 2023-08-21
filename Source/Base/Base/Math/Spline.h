@@ -102,14 +102,19 @@ namespace Spline
     {
     public:
         explicit Spline(InterpolationType type);
-        Spline(InterpolationType type, const std::vector<SplinePoint>& points);
+        Spline(InterpolationType type, const std::vector<SplinePoint>& points, const std::vector<u32>& timestamps);
 
         bool IsInterpolatedWithControl();
         [[nodiscard]] vec3 InterpolateControl(f32 t, const SplinePoint& start, const SplinePoint& end);
         [[nodiscard]] vec3 InterpolateCombined(f32 t, const vec3* points, i32 index, f32 alpha = 0.5f);
 
         bool DoInterpolation();
-        std::vector<SplinePoint> GetPoints() { return _points; };
+        std::vector<SplinePoint>& GetPoints() { return _points; };
+        std::vector<u32>& GetTimestamps() { return _timestamps; };
+
+        const SplinePoint GetSplinePoint(i32 index);
+        const u32 GetTimestamp(i32 index);
+
         void GetPointsData(std::vector<vec3>& output);
         void UpdatePoint(i32 position, SplinePoint newPoint);
 
@@ -128,6 +133,8 @@ namespace Spline
 
     protected:
         std::vector<SplinePoint> _points = {};
+        std::vector<u32> _timestamps = {};
+
         InterpolatedStorage _storage;
 
     private:
