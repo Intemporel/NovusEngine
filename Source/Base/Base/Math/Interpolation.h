@@ -1,3 +1,4 @@
+#pragma once
 #include "Math.h"
 
 namespace Spline
@@ -359,6 +360,20 @@ namespace Spline
 
         struct Bezier
         {
+            static f32 Cubic(f32 t, const f32& p0, const f32& p1, const f32& p2, const f32& p3)
+            {
+                f32 t2 = t * t;
+                f32 t3 = t2 * t;
+
+                f32 h0 = -1.0f * t3 + 3.0f * t2 - 3.0f * t + 1.0f;
+                f32 h1 = 3.0f * t3 - 6.0f * t2 + 3.0f * t;
+                f32 h2 = -3.0f * t3 + 3.0f * t2;
+                f32 h3 = t3;
+
+                f32 result = (p0 * h0) + (p1 * h1) + (p2 * h2) + (p3 * h3);
+                return result;
+            }
+
             static vec3 Cubic(f32 t, const vec3& p0, const vec3& p1, const vec3& p2, const vec3& p3)
             {
                 f32 t2 = t * t;
@@ -376,6 +391,20 @@ namespace Spline
 
         struct Hermite
         {
+            static f32 Cubic(f32 t, const f32& p0, const f32& p1, const f32& p2, const f32& p3)
+            {
+                f32 t2 = t * t;
+                f32 t3 = t2 * t;
+
+                f32 h0 = 2.0f * t3 - 3.0f * t2 + 1.0f;
+                f32 h1 = -2.0f * t3 + 3.0f * t2;
+                f32 h2 = t3 - 2 * t2 + t;
+                f32 h3 = t3 - t2;
+
+                f32 result = (p0 * h0) + (p1 * h1) + (p2 * h2) + (p3 * h3);
+                return result;
+            }
+
             static vec3 Cubic(f32 t, const vec3& p0, const vec3& p1, const vec3& p2, const vec3& p3)
             {
                 f32 t2 = t * t;
@@ -393,6 +422,25 @@ namespace Spline
 
         struct BSpline
         {
+            static f32 BasisSpline(f32 t, const f32* points, const i32 index)
+            {
+                f32 t2 = t * t;
+                f32 t3 = t2 * t;
+
+                f32 h0 = (1 - t) * (1 - t) * (1 - t);
+                f32 h1 = (3.0f * t3 - 6.0f * t2 + 4.0f);
+                f32 h2 = (-3.0f * t3 + 3.0f * t2 + 3.0f * t + 1.0f);
+                f32 h3 = t3;
+
+                f32 p0 = *(points + index + 0);
+                f32 p1 = *(points + index + 1);
+                f32 p2 = *(points + index + 2);
+                f32 p3 = *(points + index + 3);
+
+                f32 result = (p0 * h0 + p1 * h1 + p2 * h2 + p3 * h3) / 6.0f;
+                return result;
+            }
+
             static vec3 BasisSpline(f32 t, const vec3* points, const i32 index)
             {
                 f32 t2 = t * t;
