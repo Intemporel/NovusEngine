@@ -81,24 +81,26 @@ namespace DB::Client::Definitions
 
     struct Cinematic
     {
-        u32 id;
-        u32 musicSoundID;       // index in SoundEntries (old)
-        struct
+    public:
+        u32 id                  = 0;
+        u32 musicSoundID        = 0;        // index in SoundEntries (old)
+        struct Sequence
         {
-            f32 timestamp;
-            u32 musicSoundID;   // index in SoundEntries (old)
-            u32 positionSpline; // index in SplineData
-            u32 targetSpline;   // index in SplineData
-            u32 rollSpline;     // index in SplineData
-            u32 fovSpline;      // index in SplineData
+            u32 timestamp       = 0;
+            u32 musicSoundID    = 0;        // index in SoundEntries (old)
+            u32 positionSpline  = 0;        // index in SplineData
+            u32 targetSpline    = 0;        // index in SplineData
+            u32 rollSpline      = 0;        // index in SplineData
+            u32 fovSpline       = 0;        // index in SplineData
         } Sequences[8];
     };
 
     struct SplineData
     {
     public:
-        u32 id;
-        f32 rotation;
-        vec3 offset;
+        u32 id          = 0;
+        u32 path        = 0;
+        f32 rotation    = 0.0f;
+        vec3 offset     = vec3( 0.0f );
     };
 }
