@@ -78,4 +78,27 @@ namespace DB::Client::Definitions
         u32 soundID;
         u32 cameraIDs[8];
     };
+
+    struct Cinematic
+    {
+        u32 id;
+        u32 musicSoundID;       // index in SoundEntries (old)
+        struct
+        {
+            f32 timestamp;
+            u32 musicSoundID;   // index in SoundEntries (old)
+            u32 positionSpline; // index in SplineData
+            u32 targetSpline;   // index in SplineData
+            u32 rollSpline;     // index in SplineData
+            u32 fovSpline;      // index in SplineData
+        } Sequences[8];
+    };
+
+    struct SplineData
+    {
+    public:
+        u32 id;
+        f32 rotation;
+        vec3 offset;
+    };
 }
