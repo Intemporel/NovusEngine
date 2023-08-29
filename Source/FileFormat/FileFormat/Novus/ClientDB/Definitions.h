@@ -95,7 +95,7 @@ namespace DB::Client::Definitions
             u32 targetSpline    = 0;        // index in SplineData
             u32 rollSpline      = 0;        // index in SplineData
             u32 fovSpline       = 0;        // index in SplineData
-        } Sequences[8];
+        } sequences[8];
     };
 
     struct SplineData
