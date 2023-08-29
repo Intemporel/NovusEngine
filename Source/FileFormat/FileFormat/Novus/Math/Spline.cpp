@@ -140,40 +140,6 @@ namespace Spline
         _storage4D.SetStep(_step);
     }
 
-    /*template <typename T>
-    const DataSpline<T>& SplinePath::GetSplineData(i32 index)
-    {
-        if (Is2DSpline())
-        {
-            if (index >= 0 && index < _spline2D.data.size())
-            {
-                return _spline2D.data[index];
-            }
-        }
-        else
-        {
-            if (index >= 0 && index < _spline4D.data.size())
-            {
-                return _spline4D.data[index];
-            }
-        }
-
-        return { };
-    }
-
-    template <typename T>
-    const std::vector<T>& SplinePath::GetInterpolatedStorage()
-    {
-        if (Is2DSpline())
-        {
-            return _storage2D.GetInterpolatedStorage();
-        }
-        else
-        {
-            return _storage4D.GetInterpolatedStorage();
-        }
-    }*/
-
     bool SplinePath::IsInterpolatedWithControl() const
     {
         switch (_arguments.interpolationType)
@@ -224,7 +190,7 @@ namespace Spline
         f32 tStep = 1.0f / static_cast<f32>(_step);
         if (IsInterpolatedWithControl())
         {
-            for (i32 i = 0; i < _spline2D.data.size() - 1; i++)
+            for (u32 i = 0; i < _spline2D.data.size() - 1; i++)
             {
                 std::vector<f32> portion;
                 portion.reserve(_step);
@@ -243,7 +209,7 @@ namespace Spline
             if (_spline2D.GetPoints().size() < 4)
                 return false;
 
-            for (i32 i = 0; i < _spline2D.GetPoints().size() - 4; i++)
+            for (u32 i = 0; i < _spline2D.GetPoints().size() - 4; i++)
             {
                 std::vector<f32> portion;
                 portion.resize(_step);
@@ -267,7 +233,7 @@ namespace Spline
         f32 tStep = 1.0f / static_cast<f32>(_step);
         if (IsInterpolatedWithControl())
         {
-            for (i32 i = 0; i < _spline4D.data.size() - 1; i++)
+            for (u32 i = 0; i < _spline4D.data.size() - 1; i++)
             {
                 std::vector<vec3> portion;
                 portion.reserve(_step);
@@ -286,7 +252,7 @@ namespace Spline
             if (_spline4D.GetPoints().size() < 4)
                 return false;
 
-            for (i32 i = 0; i < _spline4D.GetPoints().size() - 4; i++)
+            for (u32 i = 0; i < _spline4D.GetPoints().size() - 4; i++)
             {
                 std::vector<vec3> portion;
                 portion.resize(_step);
@@ -304,11 +270,11 @@ namespace Spline
         return true;
     }
 
-    f32 SplinePath::Interpolation2D(f32 t, i32 index)
+    f32 SplinePath::Interpolation2D(f32 t, u32 index)
     {
         if (IsInterpolatedWithControl())
         {
-            if (index < 0 || index >= _spline2D.data.size() - 1)
+            if (index >= _spline2D.data.size() - 1)
                 return 0.0f;
 
             const auto& data0 = _spline2D.data[index];
@@ -320,7 +286,7 @@ namespace Spline
         }
         else
         {
-            if (index < 0 || index >= _spline2D.data.size() - 4)
+            if (index >= _spline2D.data.size() - 4)
                 return 0.0f;
 
             if (_spline2D.data.size() < 4)
@@ -330,11 +296,11 @@ namespace Spline
         }
     }
 
-    vec3 SplinePath::Interpolation4D(f32 t, i32 index)
+    vec3 SplinePath::Interpolation4D(f32 t, u32 index)
     {
         if (IsInterpolatedWithControl())
         {
-            if (index < 0 || index >= _spline4D.data.size() - 1)
+            if (index >= _spline4D.data.size() - 1)
                 return vec3( 0.0f );
 
             const auto& data0 = _spline4D.data[index];
@@ -346,7 +312,7 @@ namespace Spline
         }
         else
         {
-            if (index < 0 || index >= _spline4D.data.size() - 4)
+            if (index >= _spline4D.data.size() - 4)
                 return vec3( 0.0f );
 
             if (_spline4D.data.size() < 4)
@@ -375,10 +341,10 @@ namespace Spline
     }
 
     template <typename T>
-    T SplinePath::InterpolationCombined(f32 t, const T* points, const i32 index, SplineParameters parameters)
+    T SplinePath::InterpolationCombined(f32 t, const T* points, const u32 index, SplineParameters parameters)
     {
         t = Math::Clamp(t, 0.0f, 1.0f);
-        f32 alpha = Math::Clamp(parameters.param_0, 0.0f, 1.0f);
+        f32 alpha = Math::Clamp(parameters.param0, 0.0f, 1.0f);
 
         switch (_arguments.interpolationType)
         {
