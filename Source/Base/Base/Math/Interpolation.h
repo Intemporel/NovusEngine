@@ -463,6 +463,74 @@ namespace Spline
 
         struct CatmullRom
         {
+            static f32 GetT(f32 t, f32 alpha, const f32& p0, const f32& p1)
+            {
+                auto d = p1 - p0;
+                f32 a = glm::dot(d, d);
+                f32 b = glm::pow(a, alpha * 0.5f);
+
+                f32 T = b + t;
+                return T;
+            }
+
+            static f32 Base(f32 t, f32 alpha, const f32* points, const i32 index)
+            {
+                t = ClampAnim(t);
+                alpha = ClampAnim(alpha);
+
+                f32 p0 = *(points + index + 0);
+                f32 p1 = *(points + index + 1);
+                f32 p2 = *(points + index + 2);
+                f32 p3 = *(points + index + 3);
+
+                f32 t0 = 0.0f;
+                f32 t1 = GetT(t0, alpha, p0, p1);
+                f32 t2 = GetT(t1, alpha, p1, p2);
+                f32 t3 = GetT(t2, alpha, p2, p3);
+
+                t = Math::Lerp(t1, t2, t);
+
+                f32 h0 = (t1 - t);
+                f32 h1 = (t1 - t0);
+                f32 h2 = (t - t0);
+                f32 h3 = (t2 - t);
+                f32 h4 = (t2 - t1);
+                f32 h5 = (t - t1);
+                f32 h6 = (t3 - t);
+                f32 h7 = (t3 - t2);
+                f32 h8 = (t - t2);
+                f32 h9 = (t2 - t0);
+                f32 h10 = (t3 - t1);
+
+                f32 j0 = (h3 / h4);
+                f32 j1 = (h5 / h4);
+
+                f32 a1 = h0 / h1  * p0 + h2 / h1 * p1;
+                f32 a2 = j0  * p1 + j1 * p2;
+                f32 a3 = h6 / h7  * p2 + h8 / h7 * p3;
+
+                f32 b1 = h3 / h9  * a1 + h2 / h9 * a2;
+                f32 b2 = h6 / h10 * a2 + h5 / h10 * a3;
+
+                f32 c  = j0 * b1 + j1 * b2;
+                return c;
+            }
+
+            static f32 Uniform(f32 t, const f32* points, const i32 index)
+            {
+                return CatmullRom::Base(t, 0.0f, points, index);
+            }
+
+            static f32 Centripetal(f32 t, const f32* points, const i32 index)
+            {
+                return CatmullRom::Base(t, 0.5f, points, index);
+            }
+
+            static f32 Chordal(f32 t, const f32* points, const i32 index)
+            {
+                return CatmullRom::Base(t, 1.0f, points, index);
+            }
+
             static f32 GetT(f32 t, f32 alpha, const vec3& p0, const vec3& p1)
             {
                 auto d = p1 - p0;
