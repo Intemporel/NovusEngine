@@ -84,6 +84,9 @@ namespace DB::Client::Definitions
     public:
         u32 id                  = 0;
         u32 musicSoundID        = 0;        // index in SoundEntries (old)
+        u32 flags               = 0;
+        f32 rotation            = 0.0f;
+        vec3 position           = vec3( 0.0f );
         struct Sequence
         {
             u32 timestamp       = 0;
@@ -100,7 +103,5 @@ namespace DB::Client::Definitions
     public:
         u32 id          = 0;
         u32 path        = 0;
-        f32 rotation    = 0.0f;
-        vec3 offset     = vec3( 0.0f );
     };
 }
