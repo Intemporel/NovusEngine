@@ -6,6 +6,12 @@
 
 namespace Spline
 {
+    SplinePath::SplinePath()
+    {
+        _storage2D.Clear();
+        _storage4D.Clear();
+    }
+
     SplinePath::SplinePath(SplineArguments arguments)
     {
         _arguments = arguments;

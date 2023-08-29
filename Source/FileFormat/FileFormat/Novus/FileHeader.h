@@ -16,7 +16,8 @@ public:
 		MapChunk,
 		MapObject,
 		MapObjectGroup,
-		ComplexModel
+		ComplexModel,
+        Spline,
 	};
 
 public:

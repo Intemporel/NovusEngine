@@ -1,9 +1,18 @@
 #pragma once
-#include "Base/Types.h"
 #include "InterpolatedStorage.h"
+
+#include "FileFormat/Shared.h"
+#include "FileFormat/Novus/FileHeader.h"
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+
+class Bytebuffer;
+
+namespace Model
+{
+    struct ComplexModel;
+}
 
 namespace Spline
 {
@@ -108,9 +117,12 @@ namespace Spline
         InterpolationType interpolationType = InterpolationType::None;
     };
 
-    class SplinePath
+    struct SplinePath
     {
     public:
+        static constexpr u32 CURRENT_VERSION = 1;
+
+        SplinePath();
         explicit SplinePath(SplineArguments parameters);
         SplinePath(SplineArguments parameters, Spline2D spline);
         SplinePath(SplineArguments parameters, Spline4D spline);
@@ -161,5 +173,14 @@ namespace Spline
     private:
         SplineArguments _arguments;
         u32 _step = 1;
+
+    public:
+        FileHeader header = FileHeader(FileHeader::Type::Spline, CURRENT_VERSION);
+
+    public:
+        bool Save(const std::string& path);
+
+        static bool Read(std::shared_ptr<Bytebuffer>& buffer, SplinePath& out);
+        static bool FromComplexModel(const Model::ComplexModel& model, SplinePath& outPosition, SplinePath& outTarget, SplinePath& outRoll, SplinePath& outFov);
     };
 }
