@@ -1,8 +1,10 @@
 #include "Spline.h"
 
-#include <utility>
+#include <Base/Math/Interpolation.h>
+#include <Base/Util/DebugHandler.h>
 
-#include "Base/Math/Interpolation.h"
+#include <fstream>
+#include <utility>
 
 namespace Spline
 {
@@ -391,5 +393,198 @@ namespace Spline
             _spline4D.data[position] = data;
             _spline4D.controls[position] = control;
         }
+    }
+
+    /* Function used for Load and Save a .spline file */
+    bool SplinePath::Save(const std::string& path)
+    {
+        std::ofstream output(path, std::ofstream::out | std::ofstream::binary);
+        if (!output)
+        {
+            DebugHandler::PrintError("Failed to create Spline file. Check admin permissions");
+            return false;
+        }
+
+        // Write Header
+        {
+            output.write(reinterpret_cast<const char*>(&header), sizeof(FileHeader));
+        }
+
+        // Write Arguments
+        {
+            output.write(reinterpret_cast<const char*>(&_arguments), sizeof(Spline::SplineArguments));
+        }
+
+        // Write Spline Data
+        {
+            if (Is2DSpline())
+            {
+                // Data
+                auto dataSize = static_cast<u32>(_spline2D.data.size());
+                output.write(reinterpret_cast<const char*>(&dataSize), sizeof(u32));
+
+                if (dataSize > 0)
+                {
+                    output.write(reinterpret_cast<const char*>(&_spline2D.data[0]), dataSize * (2u * sizeof(f32)));
+                }
+
+                // Control
+                auto controlSize = static_cast<u32>(_spline2D.controls.size());
+                output.write(reinterpret_cast<const char*>(&controlSize), sizeof(u32));
+
+                if (controlSize > 0)
+                {
+                    output.write(reinterpret_cast<const char*>(&_spline2D.controls[0]), dataSize * (2u * sizeof(f32)));
+                }
+
+                // Parameters
+                output.write(reinterpret_cast<const char*>(&_spline2D.parameters), sizeof(Spline::SplineParameters));
+            }
+            else
+            {
+                // Data
+                auto dataSize = static_cast<u32>(_spline4D.data.size());
+                output.write(reinterpret_cast<const char*>(&dataSize), sizeof(u32));
+
+                if (dataSize > 0)
+                {
+                    output.write(reinterpret_cast<const char*>(&_spline4D.data[0]), dataSize * (sizeof(vec3) + sizeof(f32)));
+                }
+
+                // Control
+                auto controlSize = static_cast<u32>(_spline4D.controls.size());
+                output.write(reinterpret_cast<const char*>(&controlSize), sizeof(u32));
+
+                if (controlSize > 0)
+                {
+                    output.write(reinterpret_cast<const char*>(&_spline4D.controls[0]), dataSize * (2u * sizeof(vec3)));
+                }
+
+                // Parameters
+                output.write(reinterpret_cast<const char*>(&_spline4D.parameters), sizeof(Spline::SplineParameters));
+            }
+        }
+
+        return true;
+    }
+
+    bool SplinePath::Read(std::shared_ptr<Bytebuffer>& buffer, Spline::SplinePath& out)
+    {
+
+        return true;
+    }
+
+    bool SplinePath::FromComplexModel(const Model::ComplexModel& model, Spline::SplinePath& outPosition, Spline::SplinePath& outTarget, Spline::SplinePath& outRoll, Spline::SplinePath& outFov)
+    {
+        if (model.cameras.empty())
+            return false;
+
+        const auto& camera = model.cameras[0];
+        if (camera.positions.tracks.empty() ||
+            camera.targetPositions.tracks.empty() ||
+            camera.roll.tracks.empty() ||
+            camera.fov.tracks.empty())
+        {
+            return false;
+        }
+
+        outPosition.SetSplineType(Spline::SplineType::SplineType_4D);
+        outTarget.SetSplineType(Spline::SplineType::SplineType_4D);
+        outRoll.SetSplineType(Spline::SplineType::SplineType_2D);
+        outFov.SetSplineType(Spline::SplineType::SplineType_2D);
+
+        outPosition.SetInterpolationType(InterpolationTypeAnimToSpline(camera.positions.interpolationType));
+        outTarget.SetInterpolationType(InterpolationTypeAnimToSpline(camera.targetPositions.interpolationType));
+        outRoll.SetInterpolationType(InterpolationTypeAnimToSpline(camera.roll.interpolationType));
+        outFov.SetInterpolationType(InterpolationTypeAnimToSpline(camera.fov.interpolationType));
+
+        const Model::ComplexModel::AnimationTrack<SplineKey<vec3>>& positionTrack = camera.positions.tracks[0];
+        const Model::ComplexModel::AnimationTrack<SplineKey<vec3>>& targetTrack = camera.targetPositions.tracks[0];
+        const Model::ComplexModel::AnimationTrack<SplineKey<f32>>& rollTrack = camera.roll.tracks[0];
+        const Model::ComplexModel::AnimationTrack<SplineKey<f32>>& fovTrack = camera.fov.tracks[0];
+
+        vec3 positionBase = camera.positionBase;
+        vec3 targetBase = camera.targetPositionBase;
+
+        if ((positionTrack.values.size() != positionTrack.timestamps.size() && !positionTrack.values.empty()) ||
+            (targetTrack.values.size() != targetTrack.timestamps.size() && !targetTrack.values.empty()) ||
+            (rollTrack.values.size() != rollTrack.timestamps.size() && !rollTrack.values.empty()) ||
+            (fovTrack.values.size() != fovTrack.timestamps.size() && !fovTrack.values.empty()))
+        {
+            return false;
+        }
+
+        f32 maxTimestamp = static_cast<f32>(positionTrack.timestamps[positionTrack.timestamps.size() - 1]);
+
+        outPosition._spline4D.Clear();
+        u32 numPositionValues = static_cast<u32>(positionTrack.values.size());
+        for (u32 i = 0; i < numPositionValues; i++)
+        {
+            auto& point = outPosition._spline4D.data.emplace_back();
+            point.point = (positionTrack.values[i].value + positionBase);
+            point.timestamp = static_cast<f32>(positionTrack.timestamps[i]) / maxTimestamp;
+
+            auto& control = outPosition._spline4D.controls.emplace_back();
+            control.in = (positionTrack.values[i].tanIn + positionBase);
+            control.out = (positionTrack.values[i].tanOut + positionBase);
+        }
+
+        outTarget._spline4D.Clear();
+        u32 numTargetValues = static_cast<u32>(targetTrack.values.size());
+        for (u32 i = 0; i < numTargetValues; i++)
+        {
+            auto& point = outTarget._spline4D.data.emplace_back();
+            point.point = (targetTrack.values[i].value + targetBase);
+            point.timestamp = static_cast<f32>(targetTrack.timestamps[i]) / maxTimestamp;
+
+            auto& control = outTarget._spline4D.controls.emplace_back();
+            control.in = (targetTrack.values[i].tanIn + targetBase);
+            control.out = (targetTrack.values[i].tanOut + targetBase);
+        }
+
+        outRoll._spline2D.Clear();
+        u32 numRollValues = static_cast<u32>(rollTrack.values.size());
+        for (u32 i = 0; i < numRollValues; i++)
+        {
+            auto& point = outRoll._spline2D.data.emplace_back();
+            point.point = rollTrack.values[i].value;
+            point.timestamp = static_cast<f32>(rollTrack.timestamps[i]) / maxTimestamp;
+
+            auto& control = outRoll._spline2D.controls.emplace_back();
+            control.in = rollTrack.values[i].tanIn;
+            control.out = rollTrack.values[i].tanOut;
+        }
+
+        outFov._spline2D.Clear();
+        u32 numFovValues = static_cast<u32>(fovTrack.values.size());
+        for (u32 i = 0; i < numFovValues; i++)
+        {
+            auto& point = outFov._spline2D.data.emplace_back();
+            point.point = fovTrack.values[i].value;
+            point.timestamp = static_cast<f32>(fovTrack.timestamps[i]) / maxTimestamp;
+
+            auto& control = outFov._spline2D.controls.emplace_back();
+            control.in = fovTrack.values[i].tanIn;
+            control.out = fovTrack.values[i].tanOut;
+        }
+
+        return true;
+    }
+
+    Spline::InterpolationType SplinePath::InterpolationTypeAnimToSpline(Model::ComplexModel::AnimationInterpolationType type)
+    {
+        switch (type)
+        {
+            case Model::ComplexModel::AnimationInterpolationType::NONE:
+                return Spline::InterpolationType::None;
+            case Model::ComplexModel::AnimationInterpolationType::LINEAR:
+                return Spline::InterpolationType::Linear;
+            case Model::ComplexModel::AnimationInterpolationType::CUBIC_BEZIER_SPLINE:
+                return Spline::InterpolationType::Bezier;
+            case Model::ComplexModel::AnimationInterpolationType::CUBIC_HERMIT_SPLINE:
+                return Spline::InterpolationType::Hermite;
+        }
+
+        return Spline::InterpolationType::None;
     }
 }

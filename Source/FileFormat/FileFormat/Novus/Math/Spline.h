@@ -1,18 +1,14 @@
 #pragma once
 #include "InterpolatedStorage.h"
 
-#include "FileFormat/Shared.h"
-#include "FileFormat/Novus/FileHeader.h"
+#include <FileFormat/Shared.h>
+#include <FileFormat/Novus/FileHeader.h>
+#include <FileFormat/Novus/Model/ComplexModel.h>
 
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 class Bytebuffer;
-
-namespace Model
-{
-    struct ComplexModel;
-}
 
 namespace Spline
 {
@@ -117,7 +113,7 @@ namespace Spline
         InterpolationType interpolationType = InterpolationType::None;
     };
 
-    struct SplinePath
+    class SplinePath
     {
     public:
         static constexpr u32 CURRENT_VERSION = 1;
@@ -163,14 +159,13 @@ namespace Spline
         template <typename T>
         void UpdatePoint(u32 position, const DataSpline<T>& data, const ControlSpline<T>& control);
 
-    protected:
+    private:
         Spline2D _spline2D { };
         Spline4D _spline4D { };
 
         InterpolatedStorage<f32> _storage2D { 0 };
         InterpolatedStorage<vec3> _storage4D { 0 };
 
-    private:
         SplineArguments _arguments;
         u32 _step = 1;
 
@@ -182,5 +177,7 @@ namespace Spline
 
         static bool Read(std::shared_ptr<Bytebuffer>& buffer, SplinePath& out);
         static bool FromComplexModel(const Model::ComplexModel& model, SplinePath& outPosition, SplinePath& outTarget, SplinePath& outRoll, SplinePath& outFov);
+
+        static Spline::InterpolationType InterpolationTypeAnimToSpline(Model::ComplexModel::AnimationInterpolationType type);
     };
 }
