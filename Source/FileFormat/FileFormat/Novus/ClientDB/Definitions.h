@@ -83,6 +83,7 @@ namespace DB::Client::Definitions
     {
     public:
         u32 id                  = 0;
+        u32 name                = 0;
         u32 musicSoundID        = 0;        // index in SoundEntries (old)
         u32 flags               = 0;
         f32 rotation            = 0.0f;
