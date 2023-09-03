@@ -158,6 +158,11 @@ namespace Math
         return (value - originalMin) / (originalMax - originalMin) * (newMax - newMin) + newMin;
     }
 
+    inline u32 Map(u32 value, u32 originalMin, u32 originalMax, u32 newMin, u32 newMax)
+    {
+        return (value - originalMin) / (originalMax - originalMin) * (newMax - newMin) + newMin;
+    }
+
     inline i32 NextMultipleOf(i32 number, i32 multiple)
     {
         if (multiple == 0)

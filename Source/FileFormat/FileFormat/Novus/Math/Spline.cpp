@@ -55,11 +55,11 @@ namespace Spline
     {
         if (Is2DSpline())
         {
-            return static_cast<u32>(_spline2D.GetPoints().size());
+            return static_cast<u32>(_spline2D.data.size());
         }
         else
         {
-            return static_cast<u32>(_spline4D.GetPoints().size());
+            return static_cast<u32>(_spline4D.data.size());
         }
     }
 
@@ -201,7 +201,12 @@ namespace Spline
             for (u32 i = 0; i < _spline2D.data.size() - 1; i++)
             {
                 std::vector<f32> portion;
+                std::vector<f32> distance;
+                std::vector<f32> time;
+
                 portion.reserve(_step);
+                distance.reserve(_step);
+                time.reserve(_step);
 
                 for (u32 s = 0; s <= _step; s++)
                 {
@@ -209,7 +214,24 @@ namespace Spline
                     portion.emplace_back(Interpolation2D(t, i));
                 }
 
-                _storage2D.AddPortion(portion);
+                for (u32 s = 0; s < portion.size() - 1; s++)
+                {
+                    f32 currentPoint = portion[s];
+                    f32 nextPoint = portion[s + 1];
+                    distance.emplace_back(glm::distance(currentPoint, nextPoint));
+                }
+                distance.emplace_back(distance.back());
+
+                for (u32 s = 0; s < portion.size() - 1; s++)
+                {
+                    f32 currentTimestamp = _spline2D.data[i].timestamp;
+                    f32 nextTimestamp = _spline2D.data[i + 1].timestamp;
+                    f32 offsetTimestamp = nextTimestamp - currentTimestamp;
+                    time.emplace_back(offsetTimestamp / _step);
+                }
+                time.emplace_back(time.back());
+
+                _storage2D.AddPortion(portion, distance, time);
             }
         }
         else
@@ -220,7 +242,12 @@ namespace Spline
             for (u32 i = 0; i < _spline2D.GetPoints().size() - 4; i++)
             {
                 std::vector<f32> portion;
-                portion.resize(_step);
+                std::vector<f32> distance;
+                std::vector<f32> time;
+
+                portion.reserve(_step);
+                distance.reserve(_step);
+                time.reserve(_step);
 
                 for (u32 s = 0; s <= _step; s++)
                 {
@@ -228,7 +255,24 @@ namespace Spline
                     portion.emplace_back(Interpolation2D(t, i));
                 }
 
-                _storage2D.AddPortion(portion);
+                for (u32 s = 0; s < portion.size() - 1; s++)
+                {
+                    f32 currentPoint = portion[s];
+                    f32 nextPoint = portion[s + 1];
+                    distance.emplace_back(glm::distance(currentPoint, nextPoint));
+                }
+                distance.emplace_back(distance.back());
+
+                for (u32 s = 0; s < portion.size() - 1; s++)
+                {
+                    f32 currentTimestamp = _spline2D.data[i].timestamp;
+                    f32 nextTimestamp = _spline2D.data[i + 1].timestamp;
+                    f32 offsetTimestamp = nextTimestamp - currentTimestamp;
+                    time.emplace_back(offsetTimestamp / _step);
+                }
+                time.emplace_back(time.back());
+
+                _storage2D.AddPortion(portion, distance, time);
             }
         }
 
@@ -244,7 +288,12 @@ namespace Spline
             for (u32 i = 0; i < _spline4D.data.size() - 1; i++)
             {
                 std::vector<vec3> portion;
+                std::vector<f32> distance;
+                std::vector<f32> time;
+
                 portion.reserve(_step);
+                distance.reserve(_step);
+                time.reserve(_step);
 
                 for (u32 s = 0; s <= _step; s++)
                 {
@@ -252,18 +301,42 @@ namespace Spline
                     portion.emplace_back(Interpolation4D(t, i));
                 }
 
-                _storage4D.AddPortion(portion);
+                for (u32 s = 0; s < portion.size() - 1; s++)
+                {
+                    vec3 currentPoint = portion[s];
+                    vec3 nextPoint = portion[s + 1];
+                    distance.emplace_back(glm::distance(currentPoint, nextPoint));
+                }
+                distance.emplace_back(distance.back());
+
+                for (u32 s = 0; s < portion.size() - 1; s++)
+                {
+                    f32 currentTimestamp = _spline4D.data[i].timestamp;
+                    f32 nextTimestamp = _spline4D.data[i + 1].timestamp;
+                    f32 offsetTimestamp = nextTimestamp - currentTimestamp;
+                    time.emplace_back(offsetTimestamp / _step);
+                }
+                time.emplace_back(time.back());
+
+                _storage4D.AddPortion(portion, distance, time);
             }
         }
         else
         {
-            if (_spline4D.GetPoints().size() < 4)
+            u32 numPoints = _spline4D.GetPoints().size();
+
+            if (numPoints < 4)
                 return false;
 
-            for (u32 i = 0; i < _spline4D.GetPoints().size() - 4; i++)
+            for (u32 i = 0; i <= numPoints - 4; i++)
             {
                 std::vector<vec3> portion;
-                portion.resize(_step);
+                std::vector<f32> distance;
+                std::vector<f32> time;
+
+                portion.reserve(_step);
+                distance.reserve(_step);
+                time.reserve(_step);
 
                 for (u32 s = 0; s <= _step; s++)
                 {
@@ -271,7 +344,24 @@ namespace Spline
                     portion.emplace_back(Interpolation4D(t, i));
                 }
 
-                _storage4D.AddPortion(portion);
+                for (u32 s = 0; s < portion.size() - 1; s++)
+                {
+                    vec3 currentPoint = portion[s];
+                    vec3 nextPoint = portion[s + 1];
+                    distance.emplace_back(glm::distance(currentPoint, nextPoint));
+                }
+                distance.emplace_back(distance.back());
+
+                for (u32 s = 0; s < portion.size() - 1; s++)
+                {
+                    f32 currentTimestamp = _spline4D.data[i].timestamp;
+                    f32 nextTimestamp = _spline4D.data[i + 1].timestamp;
+                    f32 offsetTimestamp = nextTimestamp - currentTimestamp;
+                    time.emplace_back(offsetTimestamp / _step);
+                }
+                time.emplace_back(time.back());
+
+                _storage4D.AddPortion(portion, distance, time);
             }
         }
 
@@ -306,9 +396,11 @@ namespace Spline
 
     vec3 SplinePath::Interpolation4D(f32 t, u32 index)
     {
+        u32 numData = _spline4D.data.size();
+
         if (IsInterpolatedWithControl())
         {
-            if (index >= _spline4D.data.size() - 1)
+            if (index >= numData - 1)
                 return vec3( 0.0f );
 
             const auto& data0 = _spline4D.data[index];
@@ -320,10 +412,7 @@ namespace Spline
         }
         else
         {
-            if (index >= _spline4D.data.size() - 4)
-                return vec3( 0.0f );
-
-            if (_spline4D.data.size() < 4)
+            if (index >= numData - 4 || numData < 4)
                 return vec3( 0.0f );
 
             return InterpolationCombined(t, _spline4D.GetPoints().data(), index, _spline4D.parameters);
@@ -342,7 +431,7 @@ namespace Spline
             case InterpolationType::Bezier:
                 return Interpolation::Bezier::Cubic(t, data0.point, control0.out, control1.in, data1.point);
             case InterpolationType::Hermite:
-                return Interpolation::Hermite::Cubic(t, data0.point, control0.out, control1.in, data1.point);
+                return Interpolation::Hermite::Cubic(t, data0.point, data1.point, control0.in, control1.out);
             default:
                 return data0.point;
         }
@@ -470,6 +559,67 @@ namespace Spline
 
     bool SplinePath::Read(std::shared_ptr<Bytebuffer>& buffer, Spline::SplinePath& out)
     {
+        out = { };
+
+        // Read Header
+        {
+            if (!buffer->Get(out.header))
+                return false;
+        }
+
+        // Read Arguments
+        {
+            if (!buffer->Get(out._arguments))
+                return false;
+        }
+
+        // Read Spline Data
+        {
+            if (out.Is2DSpline())
+            {
+                // Data
+                u32 numDatas = 0;
+                if (!buffer->GetU32(numDatas))
+                    return false;
+
+                if (!buffer->GetVector(out._spline2D.data, numDatas))
+                    return false;
+
+                // Control
+                u32 numControls = 0;
+                if (!buffer->GetU32(numControls))
+                    return false;
+
+                if (!buffer->GetVector(out._spline2D.controls, numControls))
+                    return false;
+
+                // Parameters
+                if (!buffer->Get(out._spline2D.parameters))
+                    return false;
+            }
+            else
+            {
+                // Data
+                u32 numDatas = 0;
+                if (!buffer->GetU32(numDatas))
+                    return false;
+
+                if (!buffer->GetVector(out._spline4D.data, numDatas))
+                    return false;
+
+                // Control
+                u32 numControls = 0;
+                if (!buffer->GetU32(numControls))
+                    return false;
+
+                if (!buffer->GetVector(out._spline4D.controls, numControls))
+                    return false;
+
+                // Parameters
+                if (!buffer->Get(out._spline4D.parameters))
+                    return false;
+            }
+        }
 
         return true;
     }

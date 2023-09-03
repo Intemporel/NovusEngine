@@ -47,7 +47,7 @@ namespace Spline
         std::vector<vec3> GetPoints()
         {
             std::vector<vec3> result;
-            result.resize(data.size());
+            result.reserve(data.size());
             for (auto& point : data)
             {
                 result.push_back(point.point);
@@ -100,6 +100,11 @@ namespace Spline
         COUNT
     };
 
+    static std::string InterpolationName[static_cast<u32>(InterpolationType::COUNT)] = {
+        "None", "Linear", "Cubic Bezier", "Cubic Hermite", "Basis-Spline", "CatmullRom",
+        "CatmullRom Uniform", "CatmullRom Centripetal", "CatmullRom Chordal"
+    };
+
     enum class SplineType
     {
         SplineType_2D = 0,
@@ -116,6 +121,7 @@ namespace Spline
     class SplinePath
     {
     public:
+        static constexpr u32 NUM_SEQUENCES = 8;
         static constexpr u32 CURRENT_VERSION = 1;
 
         SplinePath();

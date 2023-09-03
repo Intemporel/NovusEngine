@@ -237,6 +237,33 @@ namespace CoordinateSpaces
         return vec3(-pos.y, pos.z, pos.x);
     }
 
+    // .Spline coordinate space to World position
+    inline vec3 SplineSpaceToWorld(const vec3& originPosition, f32 originRotation, const vec3& splinePosition)
+    {
+        const f32 distance = glm::sqrt((splinePosition.x * splinePosition.x) + (splinePosition.z * splinePosition.z));
+        f32 angle = glm::atan(splinePosition.x, splinePosition.z) - originRotation;
+
+        vec3 result = originPosition;
+        result.x += distance * sin(angle);
+        result.y += splinePosition.y;
+        result.z += distance * cos(angle);
+        return result;
+    }
+
+    // World position to .Spline coordinate space
+    inline vec3 WorldSpaceToSpline(const vec3& originPosition, f32 originRotation, const vec3& worldPosition)
+    {
+        vec3 offset = worldPosition - originPosition;
+        f32 distance = glm::length(glm::vec2(offset.x, offset.z));
+        f32 angle = glm::atan(offset.x, offset.z) + originRotation;
+
+        vec3 result;
+        result.x = distance * glm::sin(angle);
+        result.y = offset.y;
+        result.z = distance * glm::cos(angle);
+        return result;
+    }
+
     inline glm::quat ModelRotToNovus(const glm::quat& input)
     {
         // Convert input quaternion to its equivalent rotation matrix
